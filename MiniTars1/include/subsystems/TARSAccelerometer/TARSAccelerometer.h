@@ -1,14 +1,15 @@
 #include <Arduino.h>
-
 #include <Adafruit_LSM6DSOX.h>
 
 class IMU_Accelerometer {
+    private:
     // For SPI mode, we need a CS pin
     #define LSM_CS 10
     // For software-SPI mode we need SCK/MOSI/MISO pins
     #define LSM_SCK 13
     #define LSM_MISO 12
     #define LSM_MOSI 11
+
     Adafruit_LSM6DSOX sox;
 
     /* Get a new normalized sensor event */
@@ -16,11 +17,20 @@ class IMU_Accelerometer {
     sensors_event_t gyro;
     sensors_event_t temp;
 
-    public: unsigned int x_displacement = 0;
+    float ref_ang_a;
+    float ref_ang_b;
+    float ref_ang_y;
+
+    int dominantAxis;
+
+    public: 
+
+    unsigned int x_displacement = 0;
     unsigned int lastVelocity = 0;
 
     public:
-    IMU_Accelerometer() {
+    IMU_Accelerometer() {}
+    void IMU_Setup() {
         if (!sox.begin_I2C()) {
             while (1) {
             delay(10);
@@ -142,9 +152,32 @@ class IMU_Accelerometer {
             Serial.println("6.66 KHz");
             break;
         }
+
+        // Set Reference Cosines
+        sox.getEvent(&accel, &gyro, &temp);
+        float x_accel = accel.acceleration.x;
+        float y_accel = accel.acceleration.y;
+        float z_accel = accel.acceleration.z;
+        float accelMagnitude = sqrt(pow(x_accel, 2) + pow(y_accel, 2) + pow(z_accel, 2));
+        ref_ang_a = acos(x_accel / accelMagnitude);
+        ref_ang_b = acos(y_accel / accelMagnitude);
+        ref_ang_y = acos(z_accel / accelMagnitude);
+
+        
+
         return;
     }
     
+    float getAccelVector() {
+        sox.getEvent(&accel, &gyro, &temp);
+        float x_accel = accel.acceleration.x;
+        float y_accel = accel.acceleration.y;
+        float z_accel = accel.acceleration.z;
+        float accelMagnitude = sqrt(pow(x_accel, 2) + pow(y_accel, 2) + pow(z_accel, 2));
+        Serial.println("X = " + String(x_accel) + "     Y = " + String(y_accel) + "     Z = " + String(z_accel));
+        return accelMagnitude;
+    }
+
     void sumDisplacement() {
         unsigned int time0 = millis();
         delay(20);

@@ -2,24 +2,25 @@
 #include "subsystems\TARSAccelerometer\TARSAccelerometer.h"
 #include "subsystems\TARSbarometer\TARSbarometer.h"
 
-void setup(void) {
+int statusLED = 2;
+IMU_Accelerometer IMU;
+
+void setup() {
   Serial.begin(115200);
-  pinMode(13, OUTPUT);
-  pinMode(12, INPUT);
-  Serial.println("SI JALÓ");
-  // Serial.println("Adafruit LSM6DSOX test!");
+  // pinMode(13, OUTPUT);
+  // pinMode(12, INPUT);
+  delay(3000);
+  IMU.IMU_Setup();
 }
 
+
 void loop() {
-  IMU_Accelerometer IMU;
-  while (1) {
-    Serial.println("Displacement: " + String(IMU.x_displacement) + " m");
-    while (digitalRead(12)){
-      IMU.sumDisplacement();
-    }
-    digitalWrite(13, HIGH);
-    delay(1000);
-    digitalWrite(13, LOW);
-    delay(1000);
-  }
+  // float maxAccelMag = 0;
+  float AccelerationMag = IMU.getAccelVector();
+  Serial.println("Acceleration = " + String(AccelerationMag) + "m/s^2");
+  // while (AccelerationMag > maxAccelMag - 10) {
+
+  // }
+  // Serial.println("\n");
+  delay(1000);
 }
