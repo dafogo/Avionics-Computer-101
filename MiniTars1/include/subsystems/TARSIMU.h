@@ -10,8 +10,6 @@ class TARSIMU {
     public:
 
     TARSIMU() {};
-
-    int getStatusLED() { return statusLED; }
     
     void setup() {
         if (!sox.begin_I2C()) {
@@ -23,6 +21,12 @@ class TARSIMU {
         Serial.println("LSM6DSOX Found!");
         pinMode(statusLED, OUTPUT);
     }
+
+    uint8_t getAcceleration() {
+        sox.getEvent(&accel, &gyro, &temp);
+        return accel.acceleration.x, accel.acceleration.y, accel.acceleration.z;
+    }
+    int getStatusLED() { return statusLED; }
 
     void getDominantAxis() {
         sox.getEvent(&accel, &gyro, &temp);

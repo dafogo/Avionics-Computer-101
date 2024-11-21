@@ -37,20 +37,28 @@ class TARSFLASH {
     }
 
     void newRegister(uint8_t data[]) {
-        uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
-        uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
+        if (millis() >= lastTimeStamp) {
+            uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
+            uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
 
-        for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
+            for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
 
-        i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
+            i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
+
+            lastTimeStamp = millis();
+        }
     }
 
     private:
+    // Control Variables Addresses
     const uint8_t addrState = 0;
     const uint8_t addrRegisterStart = 1;
     const uint8_t addrRegisterCounter = 2;
     const uint8_t registerSizeInBytes = 5;
+    // Object Declaration
     Adafruit_EEPROM_I2C i2ceeprom;
+    // Time Gap Between Registers
+    unsigned long lastTimeStamp = millis();
 }
 ;
 #endif

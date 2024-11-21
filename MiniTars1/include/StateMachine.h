@@ -1,19 +1,17 @@
 #ifndef StateMachine_h
 #define StateMachine_h
+
+/* 
+ * Mini Tars Machine State class Definition
+ * Diego Fondón & Dana Torres
+ */
+
 #include <Arduino.h>
 
+#include "DataStructures.h"
 #include "subsystems\TARSIMU.h"
 #include "subsystems\TARSFLASH.h"
 #include "subsystems\TARSLED.h"
-
-enum RocketState {
-    IDLE = 1,
-    ARMED = 2,
-    LAUNCH = 3,
-    APOGEE = 4, 
-    RECOVERY = 5, 
-    LANDED = 6
-};
 
 class StateMachine {
     public:
@@ -21,6 +19,7 @@ class StateMachine {
 
     void setup() {
         pinMode(armButton, INPUT);
+        pinMode(resetButton, INPUT);
         tarsIMU.setup();
         tarsFLASH.setup();
         tarsLED.setup();
@@ -30,28 +29,41 @@ class StateMachine {
 
     void setState(uint8_t newState) { tarsFLASH.writeState(newState); state = (RocketState)newState; }
 
+    void resetControlVariables() {
+        if (digitalRead(resetButton) == HIGH) {
+            tarsFLASH.controlVariablesReset();
+        }
+    }
     void stateAction() {
         switch (state) {
             case IDLE: {
+                tarsLED.changeColor(IDLE);
                 break;
             }
             case ARMED: {
+                tarsLED.changeColor(ARMED);
                 break;
             }
             case LAUNCH: {
-                // Store data method
+                tarsLED.changeColor(LAUNCH);
+                uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
+                tarsFLASH.newRegister(data);
                 break;
             }
             case APOGEE: {
-                // Deploy parachute
+                tarsLED.changeColor(APOGEE);
+                uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
+                tarsFLASH.newRegister(data);
                 break;
             }
             case RECOVERY: {
-                // Store data method
+                tarsLED.changeColor(RECOVERY);
+                uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
+                tarsFLASH.newRegister(data);
                 break;
             }
             case LANDED: {
-                // Data transfer to SD Card
+                tarsLED.changeColor(LANDED);
                 break;
             }
         }
@@ -92,5 +104,8 @@ class StateMachine {
 
     // Arm Button
     int armButton = 5;
+
+    // Reset Button
+    int resetButton = 4;
 };
 #endif

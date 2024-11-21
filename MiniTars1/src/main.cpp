@@ -11,6 +11,7 @@ void setup() {
 
 
 void loop() {
+  sm.resetControlVariables();
   sm.getState();
   sm.stateAction();
   sm.stateTransition();
