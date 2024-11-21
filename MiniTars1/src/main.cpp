@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include "subsystems\TARSAccelerometer\TARSAccelerometer.h"
-#include "subsystems\TARSbarometer\TARSbarometer.h"
 
 #include "StateMachine.h"
 
@@ -13,6 +11,7 @@ void setup() {
 
 
 void loop() {
+  sm.getState();
   sm.stateAction();
   sm.stateTransition();
   delay(100);

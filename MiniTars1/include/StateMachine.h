@@ -4,6 +4,7 @@
 
 #include "subsystems\TARSIMU.h"
 #include "subsystems\TARSFLASH.h"
+#include "subsystems\TARSLED.h"
 
 enum RocketState {
     IDLE = 1,
@@ -16,15 +17,18 @@ enum RocketState {
 
 class StateMachine {
     public:
-    StateMachine();
-
-    TARSIMU getTarsIMU() { return tarsIMU; }
+    StateMachine() {};
 
     void setup() {
         pinMode(armButton, INPUT);
         tarsIMU.setup();
         tarsFLASH.setup();
+        tarsLED.setup();
     }
+
+    RocketState getState() { state = (RocketState)tarsFLASH.readState(); return state; }
+
+    void setState(uint8_t newState) { tarsFLASH.writeState(newState); state = (RocketState)newState; }
 
     void stateAction() {
         switch (state) {
@@ -56,15 +60,15 @@ class StateMachine {
     void stateTransition() {
         switch (state) {
             case IDLE: {
-                if (digitalRead(armButton) == HIGH) { state = ARMED; }
+                if (digitalRead(armButton) == HIGH) { setState(ARMED); }
                 break;
             }
             case ARMED: {
-                if (tarsIMU.launchDetection() == true) { state = LAUNCH; }
+                if (tarsIMU.launchDetection() == true) { setState(LAUNCH); }
                 break;
             }
             case LAUNCH: {
-                if (tarsIMU.freeFallDetection() == true) { state = APOGEE; }
+                if (tarsIMU.freeFallDetection() == true) { setState(APOGEE); }
                 break;
             }
             case APOGEE: {
@@ -79,11 +83,12 @@ class StateMachine {
         }
     }
     private:
-    RocketState state = IDLE;
+    RocketState state;
 
     // Subsystems
     TARSIMU tarsIMU;
     TARSFLASH tarsFLASH;
+    TARSLED tarsLED;
 
     // Arm Button
     int armButton = 5;

@@ -9,7 +9,7 @@
 class TARSIMU {
     public:
 
-    TARSIMU();
+    TARSIMU() {};
 
     int getStatusLED() { return statusLED; }
     
