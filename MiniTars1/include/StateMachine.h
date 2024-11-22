@@ -106,6 +106,6 @@ class StateMachine {
     int armButton = 5;
 
     // Reset Button
-    int resetButton = 4;
+    int resetButton = 18;
 };
 #endif

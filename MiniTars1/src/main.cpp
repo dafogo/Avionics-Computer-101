@@ -15,6 +15,7 @@ void loop() {
   sm.getState();
   sm.stateAction();
   sm.stateTransition();
+  Serial.println(sm.getState(), HEX);
   delay(100);
 
 }
