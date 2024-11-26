@@ -12,6 +12,7 @@
 #include "subsystems\TARSIMU.h"
 #include "subsystems\TARSFLASH.h"
 #include "subsystems\TARSLED.h"
+#include "subsystems\TARSBMP.h"
 
 class StateMachine {
     public:
@@ -20,6 +21,7 @@ class StateMachine {
     void setup() {
         pinMode(armButton, INPUT);
         pinMode(resetButton, INPUT);
+        tarsBMP.setup();
         tarsIMU.setup();
         tarsFLASH.setup();
         tarsLED.setup();
@@ -38,6 +40,8 @@ class StateMachine {
         switch (state) {
             case IDLE: {
                 tarsLED.changeColor(IDLE);
+                Serial.print("Altitule: ");
+                Serial.println(tarsBMP.calculateAltitude());
                 break;
             }
             case ARMED: {
@@ -101,11 +105,12 @@ class StateMachine {
     TARSIMU tarsIMU;
     TARSFLASH tarsFLASH;
     TARSLED tarsLED;
+    TARSBMP tarsBMP;
 
     // Arm Button
-    int armButton = 5;
+    int armButton = 18;
 
     // Reset Button
-    int resetButton = 18;
+    int resetButton = 5;
 };
 #endif
