@@ -26,16 +26,7 @@ class TARSIMU {
 
     TARSIMU() {};
     
-    void setup() {
-        if (!sox.begin_I2C()) {
-            while (1) {
-            delay(10);
-            Serial.println("NO JALÓ");
-            }
-        }
-        Serial.println("LSM6DSOX Found!");
-        pinMode(statusLED, OUTPUT);
-    }
+    void setup();
 
     uint8_t getAcceleration();
     int getStatusLED() { return statusLED; }

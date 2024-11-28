@@ -40,12 +40,16 @@ class StateMachine {
         switch (state) {
             case IDLE: {
                 tarsLED.changeColor(IDLE);
-                Serial.print("Altitule: ");
+                Serial.print("Altitude: ");
                 Serial.println(tarsBMP.calculateAltitude());
                 break;
             }
             case ARMED: {
                 tarsLED.changeColor(ARMED);
+                if (tarsFLASH.getInitialAltitude() == 0) { 
+                    tarsFLASH.setInitialAltitude(tarsBMP.calculateAltitude());
+                    Serial.println(tarsFLASH.getInitialAltitude());
+                }
                 break;
             }
             case LAUNCH: {
@@ -80,7 +84,7 @@ class StateMachine {
                 break;
             }
             case ARMED: {
-                if (tarsIMU.launchDetection() == true) { setState(LAUNCH); }
+                if (tarsBMP.calculateAltitude() > tarsFLASH.getInitialAltitude() + 1) { setState(LAUNCH); }
                 break;
             }
             case LAUNCH: {

@@ -14,6 +14,7 @@ class TARSFLASH {
     const uint8_t addrState = 0;
     const uint8_t addrRegisterStart = 1;
     const uint8_t addrRegisterCounter = 2;
+    const uint8_t addrInitialAltitude = 3;
     const uint8_t registerSizeInBytes = 5;
     // Object Declaration
     Adafruit_EEPROM_I2C i2ceeprom;
@@ -23,7 +24,14 @@ class TARSFLASH {
     public:
     TARSFLASH() {};
     
+    // Initialize the EEPROM
     void setup();
+
+    void setInitialAltitude(float altitude);
+
+    float getInitialAltitude();
+
+    void eepromReset();
 
     // Grabado de variables de control en eeprom
     void controlVariablesReset();
@@ -44,9 +52,24 @@ void TARSFLASH::setup() {
     }
 }
 
+void TARSFLASH::eepromReset() {
+    
+}
+
+void TARSFLASH::setInitialAltitude(float altitude) {
+    i2ceeprom.writeObject(addrInitialAltitude, altitude);
+}
+
+float TARSFLASH::getInitialAltitude() {
+    float altitude;
+    i2ceeprom.readObject(addrInitialAltitude, altitude);
+    return altitude;
+}
+
 void TARSFLASH::controlVariablesReset() {
     i2ceeprom.write(addrState, 1);
-    i2ceeprom.write(addrRegisterStart, 4);
+    i2ceeprom.write(addrInitialAltitude, 0);
+    i2ceeprom.write(addrRegisterStart, 7);
     i2ceeprom.write(addrRegisterCounter, 0);
 }
 

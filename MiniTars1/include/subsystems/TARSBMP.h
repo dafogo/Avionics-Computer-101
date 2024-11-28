@@ -33,6 +33,9 @@ class TARSBMP {
 
     // Calculate the altitude using the pressure reading
     float calculateAltitude(); //using BMP3XX library, input pressure is not needed
+
+    // Launch detection
+    bool launchDetection();
 };
 
 // ----------------------------------------------------------
