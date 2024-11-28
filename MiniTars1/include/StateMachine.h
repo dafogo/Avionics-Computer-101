@@ -13,6 +13,7 @@
 #include "subsystems\TARSFLASH.h"
 #include "subsystems\TARSLED.h"
 #include "subsystems\TARSBMP.h"
+#include "barometer_apogee.h"
 
 class StateMachine {
     public:
@@ -89,6 +90,7 @@ class StateMachine {
             }
             case LAUNCH: {
                 if (tarsIMU.freeFallDetection() == true) { setState(APOGEE); }
+                //if (freeFallDetection(tarsBMP)) { setState(APOGEE); }
                 break;
             }
             case APOGEE: {
