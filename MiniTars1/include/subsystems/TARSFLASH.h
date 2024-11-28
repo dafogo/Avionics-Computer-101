@@ -9,46 +9,6 @@
 #define EEPROM_ADDR 0x50  // The default address!
 
 class TARSFLASH {
-    public:
-
-    TARSFLASH() {};
-    
-    void setup() {
-        if (i2ceeprom.begin(0x50)) { Serial.println("Found I2C EEPROM"); } 
-        else {
-            Serial.println("I2C EEPROM not identified ... check your connections?\r\n");
-            while (1) delay(10);
-        }
-    }
-
-    // Grabado de variables de control en eeprom
-    void controlVariablesReset() {
-        i2ceeprom.write(addrState, 1);
-        i2ceeprom.write(addrRegisterStart, 4);
-        i2ceeprom.write(addrRegisterCounter, 0);
-    }
-
-    uint8_t readState() {
-        return i2ceeprom.read(addrState);
-    }
-
-    void writeState(uint8_t state) {
-        i2ceeprom.write(addrState, state);
-    }
-
-    void newRegister(uint8_t data[]) {
-        if (millis() >= lastTimeStamp) {
-            uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
-            uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
-
-            for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
-
-            i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
-
-            lastTimeStamp = millis();
-        }
-    }
-
     private:
     // Control Variables Addresses
     const uint8_t addrState = 0;
@@ -59,6 +19,56 @@ class TARSFLASH {
     Adafruit_EEPROM_I2C i2ceeprom;
     // Time Gap Between Registers
     unsigned long lastTimeStamp = millis();
+
+    public:
+    TARSFLASH() {};
+    
+    void setup();
+
+    // Grabado de variables de control en eeprom
+    void controlVariablesReset();
+
+    uint8_t readState();
+
+    void writeState(uint8_t state);
+
+    void newRegister(uint8_t data[]);
+
+};
+
+void TARSFLASH::setup() {
+    if (i2ceeprom.begin(0x50)) { Serial.println("Found I2C EEPROM"); } 
+    else {
+        Serial.println("I2C EEPROM not identified ... check your connections?\r\n");
+        while (1) delay(10);
+    }
 }
-;
+
+void TARSFLASH::controlVariablesReset() {
+    i2ceeprom.write(addrState, 1);
+    i2ceeprom.write(addrRegisterStart, 4);
+    i2ceeprom.write(addrRegisterCounter, 0);
+}
+
+uint8_t TARSFLASH::readState() {
+    return i2ceeprom.read(addrState);
+}
+
+void TARSFLASH::writeState(uint8_t state) {
+    i2ceeprom.write(addrState, state);
+}
+
+void TARSFLASH::newRegister(uint8_t data[]) {
+    if (millis() >= lastTimeStamp) {
+        uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
+        uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
+
+        for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
+
+        i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
+
+        lastTimeStamp = millis();
+    }
+}
+    
 #endif
