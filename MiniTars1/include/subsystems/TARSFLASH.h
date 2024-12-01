@@ -15,7 +15,7 @@ class TARSFLASH {
     const uint8_t addrRegisterStart = 1;
     const uint8_t addrRegisterCounter = 2;
     const uint8_t addrInitialAltitude = 3;
-    const uint8_t registerSizeInBytes = 5;
+    const uint8_t registerSizeInBytes = 7;
     // Object Declaration
     Adafruit_EEPROM_I2C i2ceeprom;
     // Time Gap Between Registers
@@ -57,7 +57,7 @@ void TARSFLASH::eepromReset() {
 }
 
 void TARSFLASH::setInitialAltitude(float altitude) {
-    i2ceeprom.writeObject(addrInitialAltitude, altitude);
+    Serial.println(i2ceeprom.writeObject(addrInitialAltitude, altitude));
 }
 
 float TARSFLASH::getInitialAltitude() {
@@ -68,8 +68,8 @@ float TARSFLASH::getInitialAltitude() {
 
 void TARSFLASH::controlVariablesReset() {
     i2ceeprom.write(addrState, 1);
-    i2ceeprom.write(addrInitialAltitude, 0);
-    i2ceeprom.write(addrRegisterStart, 7);
+    i2ceeprom.writeObject(addrInitialAltitude, (float)0);
+    i2ceeprom.write(addrRegisterStart, 9);
     i2ceeprom.write(addrRegisterCounter, 0);
 }
 
@@ -82,7 +82,8 @@ void TARSFLASH::writeState(uint8_t state) {
 }
 
 void TARSFLASH::newRegister(uint8_t data[]) {
-    if (millis() >= lastTimeStamp) {
+    Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
+    if (millis() >= lastTimeStamp + 1000 && i2ceeprom.read(addrRegisterCounter) < 500) {
         uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
         uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
 

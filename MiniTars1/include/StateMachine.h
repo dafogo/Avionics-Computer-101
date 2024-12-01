@@ -22,6 +22,7 @@ class StateMachine {
     void setup() {
         pinMode(armButton, INPUT);
         pinMode(resetButton, INPUT);
+        Serial.println("Comienza el código: " + String(digitalRead(resetButton)));
         tarsBMP.setup();
         tarsIMU.setup();
         tarsFLASH.setup();
@@ -33,7 +34,7 @@ class StateMachine {
     void setState(uint8_t newState) { tarsFLASH.writeState(newState); state = (RocketState)newState; }
 
     void resetControlVariables() {
-        if (digitalRead(resetButton) == HIGH) {
+        if (digitalRead(resetButton) == HIGH && millis() > 2000) {
             tarsFLASH.controlVariablesReset();
         }
     }
@@ -49,12 +50,13 @@ class StateMachine {
                 tarsLED.changeColor(ARMED);
                 if (tarsFLASH.getInitialAltitude() == 0) { 
                     tarsFLASH.setInitialAltitude(tarsBMP.calculateAltitude());
-                    Serial.println(tarsFLASH.getInitialAltitude());
+                    Serial.println("Initial Altitude" + String(tarsFLASH.getInitialAltitude()));
                 }
                 break;
             }
             case LAUNCH: {
                 tarsLED.changeColor(LAUNCH);
+                Serial.println(tarsFLASH.getInitialAltitude());
                 uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
                 tarsFLASH.newRegister(data);
                 break;
@@ -85,12 +87,13 @@ class StateMachine {
                 break;
             }
             case ARMED: {
-                if (tarsBMP.calculateAltitude() > tarsFLASH.getInitialAltitude() + 1) { setState(LAUNCH); }
+                if (tarsBMP.calculateAltitude() > tarsFLASH.getInitialAltitude() + 0.5) { setState(LAUNCH); }
                 break;
             }
             case LAUNCH: {
-                if (tarsIMU.freeFallDetection() == true) { setState(APOGEE); }
-                //if (freeFallDetection(tarsBMP)) { setState(APOGEE); }
+                // if (tarsIMU.freeFallDetection() == true) { setState(APOGEE); }
+                // if (freeFallDetection(tarsBMP)) { setState(APOGEE); }
+                if (freeFallDetection(tarsBMP)) { Serial.println("APOGEE"); }
                 break;
             }
             case APOGEE: {
