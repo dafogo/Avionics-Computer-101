@@ -1,5 +1,6 @@
 #ifndef ROCKETSTATE_H
 #define ROCKETSTATE_H
+
 enum RocketState {
     IDLE = 1,
     ARMED = 2,
@@ -8,4 +9,5 @@ enum RocketState {
     RECOVERY = 5, 
     LANDED = 6
 };
+
 #endif

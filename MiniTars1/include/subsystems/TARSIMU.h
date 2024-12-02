@@ -1,9 +1,11 @@
-#ifndef TARS_IMU_H
-#define TARS_IMU_H
 /* 
  * Mini Tars IMU class Definition
  * Diego Fondón & Dana Torres
  */
+
+#ifndef TARS_IMU_H
+#define TARS_IMU_H
+
 #include <Adafruit_LSM6DSOX.h>
 
 class TARSIMU {

@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "StateMachine.h"
+#include "state_machine/StateMachine.h"
 
 StateMachine sm;
 
@@ -16,6 +16,7 @@ void loop() {
   sm.stateAction();
   sm.stateTransition();
   Serial.println(sm.getState(), HEX);
+
   delay(100);
 
 }

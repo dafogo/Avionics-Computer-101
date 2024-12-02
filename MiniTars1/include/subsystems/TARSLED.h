@@ -8,7 +8,7 @@
 
 #include <Adafruit_NeoPixel.h>
 
-#include "DataStructures.h"
+#include "state_machine/RocketState.h"
 
 class TARSLED {
     public:
