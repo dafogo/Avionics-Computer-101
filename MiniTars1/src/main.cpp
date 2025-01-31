@@ -1,22 +1,18 @@
 #include <Arduino.h>
 
-#include "state_machine/StateMachine.h"
-
-StateMachine sm;
+#include "subsystems/TARSSD.h"
 
 void setup() {
   Serial.begin(115200);
-  sm.setup();
 }
 
 
 void loop() {
-  sm.resetControlVariables();
-  sm.getState();
-  sm.stateAction();
-  sm.stateTransition();
-  Serial.println(sm.getState(), HEX);
+  // 4 registers per second
+  // imu read
+  // baro read
+  // save in flash //TODO: actualizar flash (initial values = iter de vuelos, h init, current_state, last timestamp)
+  
 
-  delay(100);
-
+  //
 }

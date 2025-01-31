@@ -13,7 +13,7 @@
 #include "subsystems/TARSBMP.h"
 #include "subsystems/TARSFLASH.h"
 #include "subsystems/TARSLED.h"
-#include "processing/BMPprocess.h"
+#include "configurations/board_pins.h"
 
 class StateMachine {
 private:
@@ -24,10 +24,6 @@ private:
     TARSBMP tarsBMP;
     TARSFLASH tarsFLASH;
     TARSLED tarsLED;
-
-    // Button pins
-    const int armButton = 18; //!cheacar si es conveniente que esto este en el constructor
-    const int resetButton = 5;
     
 public:
     StateMachine(); // Constructor
@@ -53,10 +49,18 @@ public:
 // ----------------------------------------------------------
 
 void StateMachine::setup() {
-    pinMode(armButton, INPUT); // Initialization Arming Button
-    
-    pinMode(resetButton, INPUT); // Initialization Reset Button
-    Serial.println("Comienza el código: " + String(digitalRead(resetButton)));
+    pinMode(ARM_BUTTON, INPUT); // Initialization Arming Button
+    pinMode(RESET_BUTTON, INPUT); // Initialization Reset Button
+
+    pinMode(PYRO_READ, INPUT); // Initialization Pyro Read
+    pinMode(PYRO_TRIGGER, OUTPUT); // Initialization Pyro Trigger
+    pinMode(PYRO_READ2, INPUT); // Initialization Pyro2 Read
+    pinMode(PYRO_TRIGGER2, OUTPUT); // Initialization Pyro2 Trigger
+
+    digitalWrite(PYRO_TRIGGER, LOW);
+    digitalWrite(PYRO_TRIGGER2, LOW);
+
+    Serial.println("The code begins: ");
     
     // Subsystems setup
     tarsBMP.setup();
@@ -76,80 +80,89 @@ void StateMachine::setState(uint8_t newState) {
 }
 
 void StateMachine::resetControlVariables() {
-    if (digitalRead(resetButton) == HIGH && millis() > 2000) { // If the reset button is pressed, reset control variables
+    if (digitalRead(RESET_BUTTON) == HIGH && millis() > 2000) { // If the reset button is pressed, reset control variables
         tarsFLASH.controlVariablesReset();
+        //!setState(IDLE); revisar pq aqui no estaría correcto
     }
 }
 
-void StateMachine::stateAction() {
+void StateMachine::stateAction() { //* What happens in this state
     switch (state) {
-        case IDLE: { //idle
+        case IDLE: { // Idle
             tarsLED.changeColor(IDLE);
-            Serial.print("Altitude: ");
-            Serial.println(tarsBMP.calculateAltitude());
+            Serial.println("Phase:     IDLE");
             break;
         }
-        case ARMED: { //Registers initial altitude
+        case ARMED: { // Registers initial altitude
             tarsLED.changeColor(ARMED);
-            if (tarsFLASH.getInitialAltitude() == 0) {
+            Serial.println("Phase:     ARMED");
+
+            if (tarsFLASH.getInitialAltitude() == NULL) {
                 tarsFLASH.setInitialAltitude(tarsBMP.calculateAltitude());
                 Serial.println("Initial Altitude" + String(tarsFLASH.getInitialAltitude()));
             }
             break;
         }
-        case LAUNCH: {
+        case LAUNCH: { // Registers Data in Flash, but that will be managed as a global task that always happens (in IDLE data is not saved)
             tarsLED.changeColor(LAUNCH);
-            uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
-            tarsFLASH.newRegister(data); //?
+            Serial.println("Phase:     LAUNCH");
+
             break;
         }
-        case APOGEE: {
+        case APOGEE: { // Activates Pyro
             tarsLED.changeColor(APOGEE);
-            uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
-            tarsFLASH.newRegister(data); //?
-            //accionar pyro
+            Serial.println("Phase:     APOGEE");
+
+            digitalWrite(PYRO_TRIGGER, HIGH);
+            digitalWrite(PYRO_TRIGGER2, HIGH);
             break;
         }
         case RECOVERY: {
             tarsLED.changeColor(RECOVERY);
+            Serial.println("Phase:     RECOVERY");
             uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
             tarsFLASH.newRegister(data); //??
             // Parpadear leds
             break;
         }
         case LANDED: {
+            Serial.println("Phase:     LANDED");
             tarsLED.changeColor(LANDED); //?
             break;
         }
     }
 }
 
-void StateMachine::stateTransition() {
+void StateMachine::stateTransition() { //* Reads external signal and changes state
+    if(digitalRead(RESET_BUTTON)) { //! lets see if this works
+        setState(IDLE);
+        break;
+    }
+
     switch (state) {
         case IDLE: { //Change with arming button
-            if (digitalRead(armButton) == HIGH)
+            if (digitalRead(ARM_BUTTON) == HIGH)
                 setState(ARMED);
             break;
         }
-        case ARMED: { //!cambiar a deteccion con imu
-            /*if (tarsBMP.launchDetection(tarsFLASH.getInitialAltitude())) //!checar esto
-                setState(LAUNCH);*/
-            
+        case ARMED: {
             if (tarsIMU.launchDetection())
                 setState(LAUNCH);
             break;
         }
-        case LAUNCH: { //!Change with BMP apogee detection
+        case LAUNCH: {
             if (tarsBMP.freeFallDetection())
                 setState(APOGEE);
-            /*if (tarsIMU.freeFallDetection())
-                setState(APOGEE);*/
             break;
         }
-        case APOGEE: { //?
+        case APOGEE: {
+            if (digitalRead(PYRO_READ) == HIGH && digitalRead(PYRO_READ2) == HIGH)
+                setState(RECOVERY);
             break;
         }
-        case RECOVERY: { //?
+        case RECOVERY: {
+            //if(info transmitted)
+                setState(LANDED);
             break;
         }
         case LANDED: {//?

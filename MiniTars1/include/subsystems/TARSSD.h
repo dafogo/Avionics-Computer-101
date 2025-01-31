@@ -10,6 +10,7 @@
 #define TARSSD_H
 
 #include <SD.h>
+#include <SPI.h>
 
 #include "state_machine/RocketState.h"
 #include "TARSFLASH.h"
@@ -42,22 +43,25 @@ public:
 
 bool SDLogger::setup() {
     pinMode(chipSelect, OUTPUT);
+    SPIClass mySPI(VSPI);
 
-    if (!SD.begin(chipSelect)) {
+
+    if (!SD.begin(chipSelect, mySPI)) {
         Serial.println("SD initialization failed!");
         return false;
     }
 
+    Serial.print("SD found...");
+
     int fileNum = 1;
-    //if (tarsFLASH.getCSVFilename() == 0) { do...}
-    do { //!cambiar a que lo cheque con la flash, en caso de que se reinicie la computadora durante el vuelo
+    do { //TODO: cambiar a que lo cheque con la flash, en caso de que se reinicie la computadora durante el vuelo
         filename = "data" + String(fileNum) + ".csv";
         fileNum++;
     } while (SD.exists(filename));
 
     dataFile = SD.open(filename, FILE_WRITE);
     if (dataFile) {
-        dataFile.println("Time(H:MM:SS:ms),Phase,Altitude(m),Pitch(degrees), Roll(degrees), Yaw(degrees)");
+        dataFile.println("Time(H:MM:SS:ms),Phase,Altitude(m),Pitch(degrees),Roll(degrees),Yaw(degrees)");
         dataFile.close();
         Serial.println("File created: " + filename);
         return true;
