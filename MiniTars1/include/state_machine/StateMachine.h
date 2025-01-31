@@ -49,24 +49,19 @@ public:
 // ----------------------------------------------------------
 
 void StateMachine::setup() {
-    pinMode(ARM_BUTTON, INPUT); // Initialization Arming Button
-    pinMode(RESET_BUTTON, INPUT); // Initialization Reset Button
+    Serial.println("State machine begins ;)");
 
-    pinMode(PYRO_READ, INPUT); // Initialization Pyro Read
-    pinMode(PYRO_TRIGGER, OUTPUT); // Initialization Pyro Trigger
-    pinMode(PYRO_READ2, INPUT); // Initialization Pyro2 Read
-    pinMode(PYRO_TRIGGER2, OUTPUT); // Initialization Pyro2 Trigger
-
-    digitalWrite(PYRO_TRIGGER, LOW);
-    digitalWrite(PYRO_TRIGGER2, LOW);
-
-    Serial.println("The code begins: ");
+    //* Board Pins initialization
+    pins_setup();
     
-    // Subsystems setup
+    //* Subsystems setup
     tarsBMP.setup();
     tarsIMU.setup();
     tarsFLASH.setup();
     tarsLED.setup();
+
+    //* Read Flash saved data
+    setState(tarsFLASH.readState());
 }
 
 RocketState StateMachine::getState() {
