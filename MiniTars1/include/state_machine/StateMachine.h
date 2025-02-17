@@ -9,11 +9,11 @@
 #include <Arduino.h>
 
 #include "RocketState.h"
-#include "subsystems/TARSIMU.h" //!checar esto
+#include "configurations/board_pins.h"
+#include "subsystems/IMU2.h" //!checar esto - en proceso de cambiar a IMU2
 #include "subsystems/TARSBMP.h"
 #include "subsystems/TARSFLASH.h"
 #include "subsystems/TARSLED.h"
-#include "configurations/board_pins.h"
 
 class StateMachine {
 private:
@@ -24,6 +24,8 @@ private:
     TARSBMP tarsBMP;
     TARSFLASH tarsFLASH;
     TARSLED tarsLED;
+
+    unsigned long lastTimeStamp = 0;    // Time marker for register control
     
 public:
     StateMachine(); // Constructor
@@ -33,20 +35,28 @@ public:
     
     // Returns the current state
     RocketState getState();
+
     // Sets a new state
     void setState(uint8_t newState);
 
     // Resets control variables
     void resetControlVariables();
+
     // Performs the action based on the current state
     void stateAction();
+
     // Checks for state transitions and triggers them
     void stateTransition();
+
+    // PeriodicRegister
+    void periodicRegister(int regPerSec = 4);
 };
 
 // ----------------------------------------------------------
 // Method definitions
 // ----------------------------------------------------------
+
+StateMachine::StateMachine() {}
 
 void StateMachine::setup() {
     Serial.println("State machine begins ;)");
@@ -92,10 +102,12 @@ void StateMachine::stateAction() { //* What happens in this state
             tarsLED.changeColor(ARMED);
             Serial.println("Phase:     ARMED");
 
-            if (tarsFLASH.getInitialAltitude() == NULL) {
+            if (tarsFLASH.getInitialAltitude() == 0) {
                 tarsFLASH.setInitialAltitude(tarsBMP.calculateAltitude());
                 Serial.println("Initial Altitude" + String(tarsFLASH.getInitialAltitude()));
             }
+            Serial.println("Initial Altitude Registered = " + String(tarsFLASH.getInitialAltitude()));
+
             break;
         }
         case LAUNCH: { // Registers Data in Flash, but that will be managed as a global task that always happens (in IDLE data is not saved)
@@ -115,8 +127,8 @@ void StateMachine::stateAction() { //* What happens in this state
         case RECOVERY: {
             tarsLED.changeColor(RECOVERY);
             Serial.println("Phase:     RECOVERY");
-            uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};
-            tarsFLASH.newRegister(data); //??
+            // uint8_t data[5] = {tarsIMU.getAcceleration(), 0, 0};    // pendiente cambiarlo por nuevo método de registro
+            // tarsFLASH.newRegister(data); //??
             // Parpadear leds
             break;
         }
@@ -129,9 +141,8 @@ void StateMachine::stateAction() { //* What happens in this state
 }
 
 void StateMachine::stateTransition() { //* Reads external signal and changes state
-    if(digitalRead(RESET_BUTTON)) { //! lets see if this works
+    if(digitalRead(RESET_BUTTON) && millis() > 1000) { //! lets see if this works
         setState(IDLE);
-        break;
     }
 
     switch (state) {
@@ -141,7 +152,7 @@ void StateMachine::stateTransition() { //* Reads external signal and changes sta
             break;
         }
         case ARMED: {
-            if (tarsIMU.launchDetection())
+            if (tarsIMU.launchDetection())  //! Test if launch detection works
                 setState(LAUNCH);
             break;
         }
@@ -163,6 +174,19 @@ void StateMachine::stateTransition() { //* Reads external signal and changes sta
         case LANDED: {//?
             break;
         }
+    }
+}
+
+// @param regPerSec Registers per Second (4 by default)
+void StateMachine::periodicRegister(int regPerSec) { // Registers data in flash
+
+    if (millis() >= lastTimeStamp + 1000/regPerSec) {
+
+        // Register Measurments
+        tarsFLASH.newRegister(millis(), getState(), tarsBMP.calculateAltitude() , tarsIMU.getInclination(), tarsIMU.getAcceleration());
+
+        // Update lastTimeStamp
+        lastTimeStamp = millis();
     }
 }
 

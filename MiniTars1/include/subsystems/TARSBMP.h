@@ -122,5 +122,6 @@ bool TARSBMP::freeFallDetection() {
         Serial.println("Barometro — Apogeo detectado!!!");
         return true;
     }
+    return false;
 }
 #endif

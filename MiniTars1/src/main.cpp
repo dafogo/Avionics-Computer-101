@@ -15,6 +15,7 @@ void setup() {
 void loop() {
   sm.stateAction();
   sm.stateTransition();
+  sm.periodicRegister(1);
   // 4 registers per second
   // imu read
   // baro read

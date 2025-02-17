@@ -28,14 +28,15 @@ class TARSIMU {
 
     TARSIMU() {};
     
-    void setup();
+    void setup();   // ci
 
-    uint8_t getAcceleration();
-    int getStatusLED() { return statusLED; }
+    uint8_t getAcceleration();  // ci
 
-    void getDominantAxis();
+    int getStatusLED() { return statusLED; }    // no está en el otro
 
-    bool flightStatus();
+    void getDominantAxis(); // Dana lo hizo mejor
+
+    bool flightStatus();    // ya no está
 
     bool freeFallDetection();
 

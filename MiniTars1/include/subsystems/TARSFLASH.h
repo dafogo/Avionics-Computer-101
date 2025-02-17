@@ -13,13 +13,10 @@ class TARSFLASH {
     // Control Variables Addresses
     const uint8_t addrState = 0;
     const uint8_t addrRegisterStart = 1;
-    const uint8_t addrRegisterCounter = 2;
-    const uint8_t addrInitialAltitude = 3;
-    const uint8_t registerSizeInBytes = 7;
+    const uint8_t addrRegisteredBytes = 2;
+    const uint8_t addrInitialAltitude = 5;
     // Object Declaration
     Adafruit_EEPROM_I2C i2ceeprom;
-    // Time Gap Between Registers
-    unsigned long lastTimeStamp = millis();
 
     public:
     TARSFLASH() {};
@@ -40,7 +37,7 @@ class TARSFLASH {
 
     void writeState(uint8_t state);
 
-    void newRegister(uint8_t data[]);
+    void newRegister(unsigned long timestamp, RocketState state, float altitude, Vector3 inclinationVector, Vector3 accelerationVector);
 
 };
 
@@ -69,8 +66,8 @@ float TARSFLASH::getInitialAltitude() {
 void TARSFLASH::controlVariablesReset() {
     i2ceeprom.write(addrState, 1);
     i2ceeprom.writeObject(addrInitialAltitude, (float)0);
-    i2ceeprom.write(addrRegisterStart, 9);
-    i2ceeprom.write(addrRegisterCounter, 0);
+    i2ceeprom.write(addrRegisterStart, 12);
+    i2ceeprom.writeObject(addrRegisteredBytes, (uint16_t)0);
 }
 
 uint8_t TARSFLASH::readState() {
@@ -81,18 +78,37 @@ void TARSFLASH::writeState(uint8_t state) {
     i2ceeprom.write(addrState, state);
 }
 
-void TARSFLASH::newRegister(uint8_t data[]) {
-    Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
-    if (millis() >= lastTimeStamp + 1000 && i2ceeprom.read(addrRegisterCounter) < 500) {
-        uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
-        uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
+// void TARSFLASH::newRegister(uint8_t data[]) {
+//     // Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
+//     if (millis() >= lastTimeStamp + 1000 && i2ceeprom.read(addrRegisterCounter) < 500) {
+//         uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
+//         uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
 
-        for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
+//         for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
 
-        i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
+//         i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
 
-        lastTimeStamp = millis();
-    }
+//         lastTimeStamp = millis();
+//     }
+// }
+
+void TARSFLASH::newRegister(unsigned long timestamp, RocketState state, float altitude, Vector3 inclinationVector, Vector3 accelerationVector) {
+    // Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
+
+    uint16_t actualRegisteredBytes;
+    i2ceeprom.readObject(addrRegisteredBytes, actualRegisteredBytes); // !La variable de control "registeredBytes" debe ser un uint16_t
+
+    uint16_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + actualRegisteredBytes;   // Suma: byte donde comienzan registros + bytes ocupados por registros  
+
+    // Escribir mediciones:
+    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, timestamp);
+    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, state);
+    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, altitude);
+    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, inclinationVector);
+    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, accelerationVector);
+
+    // Actualizar cantidad de bytes escritos
+    i2ceeprom.writeObject(addrRegisteredBytes, inicioEscritura);
 }
     
 #endif
