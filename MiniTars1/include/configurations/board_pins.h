@@ -1,7 +1,7 @@
 #define PYRO_READ 	    13  // D13
 #define PYRO_READ2 	    12  // D12
 #define PYRO_TRIGGER 	4   // D4 
-#define PYRO_TRIGGER2 	34  // D34  ! se puede cambiar por 32
+#define PYRO_TRIGGER2 	32  // D32  ! pin 34 es sólo input, no se puede usar aquí
 #define ARM_BUTTON 	    16  // D16
 #define RESET_BUTTON 	17  // D17
 #define ORANGE_LED 	    14  // D14
@@ -15,6 +15,9 @@ void pins_setup(){
     pinMode(PYRO_TRIGGER, OUTPUT); // Initialization Pyro Trigger
     pinMode(PYRO_READ2, INPUT); // Initialization Pyro2 Read
     pinMode(PYRO_TRIGGER2, OUTPUT); // Initialization Pyro2 Trigger
+
+    pinMode(ORANGE_LED, OUTPUT); // Initialization Orange Led
+    pinMode(GREEN_LED, OUTPUT); // Initialization Green Led
 
     // digitalWrite(PYRO_TRIGGER, LOW); // checar si es lo mejor ponerlos en el setup
     // digitalWrite(PYRO_TRIGGER2, LOW);

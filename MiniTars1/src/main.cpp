@@ -16,6 +16,9 @@ void loop() {
   sm.stateAction();
   sm.stateTransition();
   sm.periodicRegister(1);
+
+  delay(1000);  // Delay temporal para debuggear más sencillo
+
   // 4 registers per second
   // imu read
   // baro read

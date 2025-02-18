@@ -78,22 +78,7 @@ void TARSFLASH::writeState(uint8_t state) {
     i2ceeprom.write(addrState, state);
 }
 
-// void TARSFLASH::newRegister(uint8_t data[]) {
-//     // Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
-//     if (millis() >= lastTimeStamp + 1000 && i2ceeprom.read(addrRegisterCounter) < 500) {
-//         uint32_t actualRegisterCounter = i2ceeprom.read(addrRegisterCounter);
-//         uint32_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + registerSizeInBytes * actualRegisterCounter;
-
-//         for(uint8_t i = 0; i < registerSizeInBytes; i++) { i2ceeprom.write(inicioEscritura + i, data[i]); }
-
-//         i2ceeprom.write(addrRegisterCounter, ++actualRegisterCounter);
-
-//         lastTimeStamp = millis();
-//     }
-// }
-
 void TARSFLASH::newRegister(unsigned long timestamp, RocketState state, float altitude, Vector3 inclinationVector, Vector3 accelerationVector) {
-    // Serial.println(i2ceeprom.read(addrRegisterCounter), DEC);
 
     uint16_t actualRegisteredBytes;
     i2ceeprom.readObject(addrRegisteredBytes, actualRegisteredBytes); // !La variable de control "registeredBytes" debe ser un uint16_t

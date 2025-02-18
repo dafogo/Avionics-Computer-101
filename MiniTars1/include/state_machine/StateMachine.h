@@ -105,6 +105,8 @@ void StateMachine::stateAction() { //* What happens in this state
             if (tarsFLASH.getInitialAltitude() == 0) {
                 tarsFLASH.setInitialAltitude(tarsBMP.calculateAltitude());
                 Serial.println("Initial Altitude" + String(tarsFLASH.getInitialAltitude()));
+                
+                delay(1000);
             }
             Serial.println("Initial Altitude Registered = " + String(tarsFLASH.getInitialAltitude()));
 
