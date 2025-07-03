@@ -83,17 +83,24 @@ void TARSFLASH::newRegister(unsigned long timestamp, RocketState state, float al
     uint16_t actualRegisteredBytes;
     i2ceeprom.readObject(addrRegisteredBytes, actualRegisteredBytes); // !La variable de control "registeredBytes" debe ser un uint16_t
 
-    uint16_t inicioEscritura = i2ceeprom.read(addrRegisterStart) + actualRegisteredBytes;   // Suma: byte donde comienzan registros + bytes ocupados por registros  
+    if (actualRegisteredBytes < 63700) {    // Until reaching max. memory capacity
 
-    // Escribir mediciones:
-    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, timestamp);
-    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, state);
-    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, altitude);
-    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, inclinationVector);
-    inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, accelerationVector);
+        uint16_t RegisterStart= i2ceeprom.read(addrRegisterStart);
+        uint16_t inicioEscritura = RegisterStart + actualRegisteredBytes;   // Suma: byte donde comienzan registros + bytes ocupados por registros  
 
-    // Actualizar cantidad de bytes escritos
-    i2ceeprom.writeObject(addrRegisteredBytes, inicioEscritura);
+        // Escribir mediciones:
+        inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, timestamp);
+        inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, state);
+        inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, altitude);
+        inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, inclinationVector);
+        inicioEscritura = inicioEscritura + i2ceeprom.writeObject(inicioEscritura, accelerationVector);
+
+        // Actualizar cantidad de bytes escritos
+        i2ceeprom.writeObject(addrRegisteredBytes, inicioEscritura - RegisterStart);
+
+    } else {    // transfer measures to SD Card when eeprom is full
+
+    }
 }
     
 #endif
